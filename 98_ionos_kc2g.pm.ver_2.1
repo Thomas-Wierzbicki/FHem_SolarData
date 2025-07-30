@@ -1,0 +1,156 @@
+##############################################
+# 98_ionos_kc2g.pm – FHEM-Modul für ionosphärische Daten von prop.kc2g.com
+# Version 4.0 – JSON-Verarbeitung von /api/stations.json
+##############################################
+
+package main;
+use strict;
+use warnings;
+use HttpUtils;
+use JSON;
+
+=pod
+
+
+sub ionos_kc2g_updateStationList {
+  eval {
+    my $url = "https://prop.kc2g.com/api/stations.json";
+    my $json = GetFileFromURL($url, 10);  # 10s Timeout
+    return unless $json;
+
+    my $data = decode_json($json);
+    return unless ref($data) eq 'ARRAY';
+
+    my @ids = map { $_->{id} } @$data;
+    my $list = join(",", @ids);
+
+    $modules{ionos_kc2g}{AttrList} .= "stationId:$list ";
+    Log3 undef, 3, "ionos_kc2g: stationId-AttrList gesetzt mit $list";
+  };
+  if ($@) {
+    Log3 undef, 2, "ionos_kc2g: Fehler beim Laden der stationId-Liste: $@";
+  }
+}
+>
+=cut
+
+sub ionos_kc2g_Initialize {
+  my ($hash) = @_;
+  $hash->{DefFn}    = 'ionos_kc2g_Define';
+  $hash->{UndefFn}  = 'ionos_kc2g_Undef';
+  $hash->{SetFn}    = 'ionos_kc2g_Set';
+  $hash->{AttrList} = 'interval:300,600,900,1800 stationId';
+  $hash->{SetList}  = 'update';
+  #
+  #ionos_kc2g_updateStationList($h);
+  #
+}
+
+
+
+sub ionos_kc2g_Define {
+  my ($hash, $def) = @_;
+  my @a = split(" ", $def);
+  return "Usage: define <name> ionos_kc2g" if(@a < 2);
+
+  $hash->{INTERVAL} = AttrVal($hash->{NAME}, 'interval', 90);
+  $hash->{STATION}  = AttrVal($hash->{NAME}, 'stationId', 'Juliusruh, Germany');
+
+  RemoveInternalTimer($hash);
+  ionos_kc2g_Update($hash);
+  InternalTimer(gettimeofday() + $hash->{INTERVAL}, 'ionos_kc2g_Update', $hash);
+  return undef;
+}
+
+sub ionos_kc2g_Undef {
+  my ($hash, $name) = @_;
+  RemoveInternalTimer($hash);
+  return undef;
+}
+
+sub ionos_kc2g_Set {
+  my ($hash, $name, $cmd, @args) = @_;
+  return "Unknown argument $cmd" unless $cmd eq 'update';
+  ionos_kc2g_Update($hash);
+  return "ionos_kc2g update triggered";
+}
+
+sub ionos_kc2g_Update {
+  my ($hash) = @_;
+  my $name = $hash->{NAME};
+  my $station = AttrVal($name, 'stationId', 'Juliusruh, Germany');
+  my $url = 'https://prop.kc2g.com/api/stations.json';
+
+  Log3 $name, 4, "ionos_kc2g: loading JSON from $url for station '$station'";
+
+  HttpUtils_NonblockingGet({
+    url      => $url,
+    timeout  => 15,
+    hash     => $hash,
+    method   => 'GET',
+    callback => sub {
+      my ($param, $err, $data) = @_;
+      my $hash = $param->{hash};
+      my $name = $hash->{NAME};
+
+      if ($err ne '') {
+        Log3 $name, 3, "ionos_kc2g: error fetching data - $err";
+        return;
+      }
+
+      my $decoded;
+      eval { $decoded = decode_json($data); };
+      if ($@ || ref($decoded) ne 'ARRAY') {
+        Log3 $name, 3, "ionos_kc2g: JSON decode error: $@";
+        return;
+      }
+
+      my $found = 0;
+      foreach my $entry (@$decoded) {
+        my $label = $entry->{station}->{name};
+        next unless defined $label;
+
+        if ($label eq $station) {
+          Log3 $name, 3, "ionos_kc2g: match found: $label";
+
+          readingsBeginUpdate($hash);
+          foreach my $key (qw/time mufd md tec fof2 hmf2 foe cs/) {
+            readingsBulkUpdate($hash, $key, $entry->{$key}) if defined $entry->{$key};
+          }
+          readingsBulkUpdate($hash, 'Longitude', $entry->{station}->{longitude}) if defined $entry->{station}->{longitude};
+          readingsBulkUpdate($hash, 'Latitude',  $entry->{station}->{latitude})  if defined $entry->{station}->{latitude};
+          readingsBulkUpdate($hash, 'CityCountry', $label);
+          readingsEndUpdate($hash, 1);
+#--------------------------------------------------------------------------------------------
+# Next update berechnen  -  FEHLT
+
+
+#--------------------------------------------------------------------------------------------
+          $found = 1;
+          last;
+        }
+      }
+
+      Log3 $name, 3, "ionos_kc2g: station '$station' not found in JSON" if !$found;
+    }
+  });
+
+  InternalTimer(gettimeofday() + $hash->{INTERVAL}, 'ionos_kc2g_Update', $hash);
+
+#---------------------------------------------------------------------------------------------  
+
+# updateIonosState($hash);
+
+  updateIonosState($hash->{NAME});
+
+#---------------------------------------------------------------------------------------------
+}
+
+1;
+
+=pod
+=item summary    Ionosphärische Parameter via prop.kc2g.com (JSON API)
+=item category   Weather
+=item description
+Dieses Modul lädt regelmäßig ionosphärische Parameter (z. B. foF2, MUFD, hF2) aus https://prop.kc2g.com/api/stations.json. Die Zielstation wird über das Attribut "stationId" (z. B. "Juliusruh, Germany") identifiziert.
+=cut
