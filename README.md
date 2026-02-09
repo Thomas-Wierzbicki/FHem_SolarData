@@ -91,3 +91,35 @@ Erstelle eine neue Datei im FHEM-Modulverzeichnis (meist `/opt/fhem/FHEM/`):
 
 ```bash
 sudo nano /opt/fhem/FHEM/99_SolarPanelUtils.pm
+
+# FHEM IonoPanel Utility (OpenHamClock Style)
+
+Dieses FHEM-Modul holt Echtzeit-Ionosphären-Daten (Ionosonde) von **KC2G / GIRO** und visualisiert sie im modernen Design der **OpenHamClock**. Es zeigt die kritische Frequenz (**foF2**) und die maximal nutzbare Frequenz (**MUF**) für eine gewählte Station an, inklusive historischer Verlaufsdiagramme (Sparklines).
+
+![Preview](https://via.placeholder.com/400x200/111111/ffffff?text=IonoPanel+Preview+foF2+MUF)
+*(Beispiel: Zeigt foF2 und MUF für Juliusruh oder Dourbes im Dark Mode)*
+
+## 🚀 Features
+
+* **Datenquelle:** Lädt die Master-Liste von `prop.kc2g.com` und extrahiert die gewünschte Station.
+* **Visualisierung:**
+    * **foF2:** Kritische Frequenz der F2-Schicht (Grün).
+    * **MUF(3000):** Maximum Usable Frequency für 3000km Sprungdistanz (Cyan).
+    * **Sparklines:** 30-Punkte-Verlaufsdiagramm direkt im Reading.
+* **Robustheit:** * Fängt HTTP- und JSON-Fehler ab.
+    * Funktioniert auch, wenn die Station nicht unter einer direkten URL erreichbar ist (durch Parsen der Gesamtliste).
+* **Non-Blocking:** Der FHEM-Server friert während des Ladens nicht ein.
+
+## 📋 Voraussetzungen
+
+* Laufende FHEM-Installation.
+* Perl-Module (Standard): `HttpUtils`, `JSON`, `List::Util`.
+* Internetzugang am FHEM-Server.
+
+## 🛠 Installation
+
+### 1. Utility-Datei erstellen
+Erstelle eine neue Datei im FHEM-Verzeichnis:
+
+```bash
+sudo nano /opt/fhem/FHEM/99_IonoPanelUtils.pm
