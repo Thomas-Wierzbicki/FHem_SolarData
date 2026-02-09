@@ -58,3 +58,36 @@ Dieses Modul steht unter der MIT-Lizenz. Siehe `LICENSE` für Details.
 
 Thomas Wierzbicki  
 [KC2G Propagation Tools](https://prop.kc2g.com) – Datenquelle
+
+# FHEM SolarPanel Utility (OpenHamClock Style)
+
+Dieses FHEM-Erweiterungsmodul bringt die moderne Solar-Daten-Anzeige der **OpenHamClock** in dein FHEM Dashboard. Es ruft aktuelle Weltraumwetter-Daten der NOAA ab und visualisiert diese mit **SVG-Sparklines** (Verlaufsdiagrammen) direkt im FHEMWEB.
+
+![Preview](https://via.placeholder.com/400x200/111111/ffffff?text=Solar+Panel+Preview) 
+*(Beispiel: Zeigt SFI, SSN, A-Index und K-Index im Dark Mode)*
+
+## 🚀 Features
+
+* **Datenquelle:** Direkter Abruf der `daily-solar-indices.txt` vom NOAA SWPC.
+* **Visualisierung:**
+    * **SSN (Sunspot Number):** Aktueller Wert + 30-Tage-Verlauf (Cyan).
+    * **SFI (Solar Flux Index):** Aktueller Wert + 30-Tage-Verlauf (Amber).
+    * **Indizes:** K-Index (mit Farbwarnung grün/rot) und A-Index.
+* **Technologie:** Generiert reines HTML/SVG, das in jedem FHEM-Browser (Desktop & Mobile) ohne zusätzliche Plugins funktioniert.
+* **Non-Blocking:** Der Datenabruf erfolgt asynchron via `HttpUtils`, sodass FHEM während des Ladens nicht einfriert.
+
+## 📋 Voraussetzungen
+
+* Eine laufende FHEM-Installation.
+* Standard Perl-Module (meistens bereits vorinstalliert):
+    * `HttpUtils` (Teil von FHEM)
+    * `List::Util` (Core Perl Modul)
+* Internetzugang für den FHEM-Server (für HTTPS-Zugriff auf `services.swpc.noaa.gov`).
+
+## 🛠 Installation
+
+### 1. Utility-Datei erstellen
+Erstelle eine neue Datei im FHEM-Modulverzeichnis (meist `/opt/fhem/FHEM/`):
+
+```bash
+sudo nano /opt/fhem/FHEM/99_SolarPanelUtils.pm
