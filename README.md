@@ -59,70 +59,142 @@ Dieses Modul steht unter der MIT-Lizenz. Siehe `LICENSE` für Details.
 Thomas Wierzbicki  
 [KC2G Propagation Tools](https://prop.kc2g.com) – Datenquelle
 
-# FHEM SolarPanel Utility (OpenHamClock Style)
+# FHEM IonoPanel Utility (OpenHamClock Style)
 
-Dieses FHEM-Erweiterungsmodul bringt die moderne Solar-Daten-Anzeige der **OpenHamClock** in dein FHEM Dashboard. Es ruft aktuelle Weltraumwetter-Daten der NOAA ab und visualisiert diese mit **SVG-Sparklines** (Verlaufsdiagrammen) direkt im FHEMWEB.
+Ein FHEM-Modul, das Echtzeit-Ionosphären-Daten (Ionosonde) von **KC2G / GIRO** holt und im modernen Design der **OpenHamClock** visualisiert.
 
-![Preview](https://via.placeholder.com/400x200/111111/ffffff?text=Solar+Panel+Preview) 
-*(Beispiel: Zeigt SFI, SSN, A-Index und K-Index im Dark Mode)*
+**Features in v5:**
+* 🔽 **Dropdown-Menü:** Wähle aus über 100 weltweiten Ionosonden direkt in der FHEM-Oberfläche.
+* 🛡️ **Robust:** Lädt die Master-Liste aller Stationen (verhindert 404-Fehler bei URL-Änderungen).
+* ⚡ **Smart Update:** Verhindert "Ping-Pong"-Effekte bei schnellem Stationswechsel.
+* 📈 **Sparklines:** 30-Punkte-Verlaufsdiagramme für foF2 und MUF mit automatischem Clipping (keine Grafikfehler bei Fehlmessungen).
+* 📱 **Dashboard Ready:** Perfekt integrierbar in FHEMWEB oder `95_Dashboard.pm`.
 
-## 🚀 Features
+![Preview](https://via.placeholder.com/400x220/111111/ffffff?text=IonoPanel+v5+Example)
 
-* **Datenquelle:** Direkter Abruf der `daily-solar-indices.txt` vom NOAA SWPC.
-* **Visualisierung:**
-    * **SSN (Sunspot Number):** Aktueller Wert + 30-Tage-Verlauf (Cyan).
-    * **SFI (Solar Flux Index):** Aktueller Wert + 30-Tage-Verlauf (Amber).
-    * **Indizes:** K-Index (mit Farbwarnung grün/rot) und A-Index.
-* **Technologie:** Generiert reines HTML/SVG, das in jedem FHEM-Browser (Desktop & Mobile) ohne zusätzliche Plugins funktioniert.
-* **Non-Blocking:** Der Datenabruf erfolgt asynchron via `HttpUtils`, sodass FHEM während des Ladens nicht einfriert.
+---
 
 ## 📋 Voraussetzungen
 
 * Eine laufende FHEM-Installation.
-* Standard Perl-Module (meistens bereits vorinstalliert):
-    * `HttpUtils` (Teil von FHEM)
-    * `List::Util` (Core Perl Modul)
-* Internetzugang für den FHEM-Server (für HTTPS-Zugriff auf `services.swpc.noaa.gov`).
+* Standard Perl-Module: `HttpUtils`, `JSON`, `List::Util` (meist vorinstalliert).
+* Internetzugang am FHEM-Server (HTTPS zu `prop.kc2g.com`).
+
+---
 
 ## 🛠 Installation
 
 ### 1. Utility-Datei erstellen
-Erstelle eine neue Datei im FHEM-Modulverzeichnis (meist `/opt/fhem/FHEM/`):
-
-```bash
-sudo nano /opt/fhem/FHEM/99_SolarPanelUtils.pm
-
-# FHEM IonoPanel Utility (OpenHamClock Style)
-
-Dieses FHEM-Modul holt Echtzeit-Ionosphären-Daten (Ionosonde) von **KC2G / GIRO** und visualisiert sie im modernen Design der **OpenHamClock**.
-
-**Neu in v5:**
-* 🔽 **Dropdown-Menü:** Wähle die Ionosonde direkt in der FHEM-Oberfläche aus.
-* 🛡️ **Robustheit:** Lädt die Master-Liste aller Stationen (keine 404-Fehler mehr).
-* ⚡ **Performance:** Verhindert "Ping-Pong"-Effekte bei schnellem Stationswechsel.
-* 📈 **Smart Graph:** Filtert Fehlmessungen und verhindert, dass die Kurve den Rahmen sprengt.
-
-![Preview](https://via.placeholder.com/400x200/111111/ffffff?text=IonoPanel+v5+with+Dropdown)
-
-## 🚀 Features
-
-* **Visualisierung:**
-    * **foF2:** Kritische Frequenz der F2-Schicht (Grün).
-    * **MUF(3000):** Maximum Usable Frequency (Cyan).
-    * **Sparklines:** 30-Punkte-Verlaufsdiagramm direkt im Reading.
-* **Bedienung:** Automatisch generiertes Dropdown-Menü aller verfügbaren weltweiten Stationen.
-* **Non-Blocking:** Der FHEM-Server friert während des Ladens nicht ein.
-
-## 📋 Voraussetzungen
-
-* Laufende FHEM-Installation.
-* Perl-Module: `HttpUtils`, `JSON`, `List::Util` (Standard in den meisten FHEM-Installationen).
-* Internetzugang am FHEM-Server.
-
-## 🛠 Installation
-
-### 1. Utility-Datei erstellen
-Erstelle eine neue Datei im FHEM-Verzeichnis:
+Erstelle die Datei im FHEM-Modulverzeichnis:
 
 ```bash
 sudo nano /opt/fhem/FHEM/99_IonoPanelUtils.pm
+
+# FHEM IonoPanel Utility (OpenHamClock Style)
+
+Ein FHEM-Modul, das Echtzeit-Ionosphären-Daten (Ionosonde) von **KC2G / GIRO** holt und im modernen Design der **OpenHamClock** visualisiert.
+
+**Features (v5):**
+* 🔽 **Dropdown-Menü:** Wähle aus über 100 weltweiten Ionosonden direkt in der FHEM-Oberfläche.
+* 🛡️ **Robust:** Lädt die Master-Liste aller Stationen (verhindert 404-Fehler).
+* ⚡ **Smart Update:** Verhindert "Ping-Pong"-Effekte bei schnellem Stationswechsel.
+* 📈 **Sparklines:** 30-Punkte-Verlaufsdiagramme für foF2 und MUF mit automatischem Clipping.
+* 📱 **Dashboard Ready:** Perfekt integrierbar in FHEMWEB oder `95_Dashboard.pm`.
+
+![Preview](https://via.placeholder.com/400x220/111111/ffffff?text=IonoPanel+v5+Example)
+
+---
+
+## 📋 Voraussetzungen
+
+* Eine laufende FHEM-Installation.
+* Standard Perl-Module: `HttpUtils`, `JSON`, `List::Util` (meist vorinstalliert).
+* Internetzugang am FHEM-Server.
+
+---
+
+## 🛠 Installation (Schritt-für-Schritt)
+
+### Schritt 1: Datei erstellen
+Melde dich per SSH (Putty, Terminal) auf deinem FHEM-Server (z.B. Raspberry Pi) an.
+Erstelle die Datei im FHEM-Modulverzeichnis:
+
+```bash
+cd /opt/fhem/FHEM
+sudo nano 99_IonoPanelUtils.pm
+
+
+
+# FHEM IonoPanel Utility (OpenHamClock Style)
+
+Ein FHEM-Modul, das Echtzeit-Ionosphären-Daten (Ionosonde) von **KC2G / GIRO** holt und im modernen Design der **OpenHamClock** visualisiert.
+
+**Features in v5:**
+* 🔽 **Dropdown-Menü:** Wähle aus über 100 weltweiten Ionosonden direkt in der FHEM-Oberfläche.
+* 🛡️ **Robust:** Lädt die Master-Liste aller Stationen (verhindert 404-Fehler bei URL-Änderungen).
+* ⚡ **Smart Update:** Verhindert "Ping-Pong"-Effekte bei schnellem Stationswechsel.
+* 📈 **Sparklines:** 30-Punkte-Verlaufsdiagramme für foF2 und MUF mit automatischem Clipping (keine Grafikfehler bei Fehlmessungen).
+* 📱 **Dashboard Ready:** Perfekt integrierbar in FHEMWEB oder `95_Dashboard.pm`.
+
+![Preview](https://via.placeholder.com/400x220/111111/ffffff?text=IonoPanel+v5+Example)
+
+---
+
+## 📋 Voraussetzungen
+
+* Eine laufende FHEM-Installation.
+* Standard Perl-Module: `HttpUtils`, `JSON`, `List::Util` (meist vorinstalliert).
+* Internetzugang am FHEM-Server (HTTPS zu `prop.kc2g.com`).
+
+---
+
+## 🛠 Installation
+
+### 1. Utility-Datei erstellen
+Erstelle die Datei im FHEM-Modulverzeichnis:
+
+```bash
+sudo nano /opt/fhem/FHEM/99_IonoPanelUtils.pm
+
+sudo chown fhem:dialout /opt/fhem/FHEM/99_IonoPanelUtils.pm
+sudo chmod 644 /opt/fhem/FHEM/99_IonoPanelUtils.pm
+
+reload 99_IonoPanelUtils.pm
+# 1. Dummy Device definieren
+define IonoPanel dummy
+attr IonoPanel room Amateurfunk
+attr IonoPanel group SpaceWeather
+attr IonoPanel icon radar
+
+# 2. Dropdown-Menü vorbereiten
+# Wir nutzen das Reading 'station' zur Steuerung
+attr IonoPanel readingList station
+attr IonoPanel setList station
+attr IonoPanel webCmd station
+
+# 3. Anzeige auf das generierte HTML stellen
+attr IonoPanel stateFormat html_ui
+
+# 4. Notify für Stationswechsel
+# Wenn im Dropdown eine neue Station gewählt wird, sofort Update starten
+define IonoPanel_Notify notify IonoPanel:station:.* { IonoPanel_Update("IonoPanel") }
+
+# 5. Timer für automatische Updates (alle 15 Minuten)
+define IonoPanel_Timer at +*00:15:00 { IonoPanel_Update("IonoPanel") }
+attr IonoPanel_Timer alignTime 00:05:00
+
+# 6. INITIALISIERUNG (Einmalig ausführen!)
+# Lädt die Liste aller Stationen für das Dropdown
+{ IonoPanel_GetList("IonoPanel") }
+
+# Zuweisung zur Dashboard-Gruppe (Beispiel: SpaceWeather)
+attr IonoPanel group SpaceWeather
+
+# Positionierung (Spalte 0, Zeile 0)
+attr IonoPanel dashboard_col 0
+attr IonoPanel dashboard_row 0
+
+# (Optional) Breite/Höhe fixieren
+attr IonoPanel dashboard_width 300
+attr IonoPanel dashboard_height 180
+
