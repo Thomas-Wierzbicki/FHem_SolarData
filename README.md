@@ -94,26 +94,29 @@ sudo nano /opt/fhem/FHEM/99_SolarPanelUtils.pm
 
 # FHEM IonoPanel Utility (OpenHamClock Style)
 
-Dieses FHEM-Modul holt Echtzeit-Ionosphären-Daten (Ionosonde) von **KC2G / GIRO** und visualisiert sie im modernen Design der **OpenHamClock**. Es zeigt die kritische Frequenz (**foF2**) und die maximal nutzbare Frequenz (**MUF**) für eine gewählte Station an, inklusive historischer Verlaufsdiagramme (Sparklines).
+Dieses FHEM-Modul holt Echtzeit-Ionosphären-Daten (Ionosonde) von **KC2G / GIRO** und visualisiert sie im modernen Design der **OpenHamClock**.
 
-![Preview](https://via.placeholder.com/400x200/111111/ffffff?text=IonoPanel+Preview+foF2+MUF)
-*(Beispiel: Zeigt foF2 und MUF für Juliusruh oder Dourbes im Dark Mode)*
+**Neu in v5:**
+* 🔽 **Dropdown-Menü:** Wähle die Ionosonde direkt in der FHEM-Oberfläche aus.
+* 🛡️ **Robustheit:** Lädt die Master-Liste aller Stationen (keine 404-Fehler mehr).
+* ⚡ **Performance:** Verhindert "Ping-Pong"-Effekte bei schnellem Stationswechsel.
+* 📈 **Smart Graph:** Filtert Fehlmessungen und verhindert, dass die Kurve den Rahmen sprengt.
+
+![Preview](https://via.placeholder.com/400x200/111111/ffffff?text=IonoPanel+v5+with+Dropdown)
 
 ## 🚀 Features
 
-* **Datenquelle:** Lädt die Master-Liste von `prop.kc2g.com` und extrahiert die gewünschte Station.
 * **Visualisierung:**
     * **foF2:** Kritische Frequenz der F2-Schicht (Grün).
-    * **MUF(3000):** Maximum Usable Frequency für 3000km Sprungdistanz (Cyan).
+    * **MUF(3000):** Maximum Usable Frequency (Cyan).
     * **Sparklines:** 30-Punkte-Verlaufsdiagramm direkt im Reading.
-* **Robustheit:** * Fängt HTTP- und JSON-Fehler ab.
-    * Funktioniert auch, wenn die Station nicht unter einer direkten URL erreichbar ist (durch Parsen der Gesamtliste).
+* **Bedienung:** Automatisch generiertes Dropdown-Menü aller verfügbaren weltweiten Stationen.
 * **Non-Blocking:** Der FHEM-Server friert während des Ladens nicht ein.
 
 ## 📋 Voraussetzungen
 
 * Laufende FHEM-Installation.
-* Perl-Module (Standard): `HttpUtils`, `JSON`, `List::Util`.
+* Perl-Module: `HttpUtils`, `JSON`, `List::Util` (Standard in den meisten FHEM-Installationen).
 * Internetzugang am FHEM-Server.
 
 ## 🛠 Installation
